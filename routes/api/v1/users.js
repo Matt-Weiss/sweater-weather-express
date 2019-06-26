@@ -1,5 +1,6 @@
 var express = require("express");
 var router = express.Router();
+const uuidv4 = require('uuid/v4');
 var User = require('../../../models').User;
 
 const bcrypt = require('bcrypt');
@@ -33,11 +34,11 @@ router.post("/", function(request, response, next){
         User.create({
           email: request.body.email.toLowerCase(),
           password: encrypted_password(request.body.password),
-          api_key: "test"
+          api_key: uuidv4()
         })
         .then(user => {
           response.setHeader("Content-Type", "application/json");
-          response.status(201).send(JSON.stringify(user.api_key));
+          response.status(201).send(JSON.stringify({api_key: user.api_key}, null, ' '));
         })
         .catch(error => {
           response.setHeader("Content-Type", "application/json");
