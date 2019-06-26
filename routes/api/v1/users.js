@@ -7,22 +7,44 @@ const saltRounds = 10;
 
 var encrypted_password = function(password){
   return bcrypt.hashSync(password, saltRounds);
-}
+};
+
+var findUserByEmail = function(email){
+  return User.findOne({where: {email: email} })
+  .then(user => {
+     if(user == null){
+       return true;
+     }
+     return false;
+  })
+};
+
 
 router.post("/", function(request, response, next){
-  User.create({
-    email: request.body.email,
-    password: encrypted_password(request.body.password),
-    api_key: "test"
-  })
-  .then(user => {
-    response.setHeader("Content-Type", "application/json");
-    response.status(201).send(JSON.stringify(user.api_key));
-  })
-  .catch(error => {
-    response.setHeader("Content-Type", "application/json");
-    response.status(500).send({ error });
-  });
+  findUserByEmail(request.body.email.toLowerCase())
+    .then((validity) => {
+      if (validity == false) {
+        response.setHeader("Content-Type", "application/json");
+        response.status(500).send("This email is already in use!")
+      } else if (request.body.password != request.body.confirm_password) {
+        response.setHeader("Content-Type", "application/json");
+        response.status(500).send("Passwords don't match")
+      } else {
+        User.create({
+          email: request.body.email.toLowerCase(),
+          password: encrypted_password(request.body.password),
+          api_key: "test"
+        })
+        .then(user => {
+          response.setHeader("Content-Type", "application/json");
+          response.status(201).send(JSON.stringify(user.api_key));
+        })
+        .catch(error => {
+          response.setHeader("Content-Type", "application/json");
+          response.status(500).send({ error });
+        });
+      }
+    });
 })
 
 module.exports = router;
