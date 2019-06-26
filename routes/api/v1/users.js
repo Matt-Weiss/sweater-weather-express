@@ -2,11 +2,17 @@ var express = require("express");
 var router = express.Router();
 var User = require('../../../models').User;
 
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
+var encrypted_password = function(password){
+  return bcrypt.hashSync(password, saltRounds);
+}
 
 router.post("/", function(request, response, next){
   User.create({
     email: request.body.email,
+    password: encrypted_password(request.body.password),
     api_key: "test"
   })
   .then(user => {
