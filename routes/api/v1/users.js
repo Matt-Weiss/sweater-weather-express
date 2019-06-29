@@ -26,10 +26,10 @@ router.post("/", function(request, response, next){
     .then((validity) => {
       if (validity == false) {
         response.setHeader("Content-Type", "application/json");
-        response.status(400).send("This email is already in use!")
+        response.status(401).send("This email is already in use!")
       } else if (request.body.password != request.body.confirm_password) {
         response.setHeader("Content-Type", "application/json");
-        response.status(400).send("Passwords don't match")
+        response.status(401).send("Passwords don't match")
       } else {
         User.create({
           email: request.body.email.toLowerCase(),
