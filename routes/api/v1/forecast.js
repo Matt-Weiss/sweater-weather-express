@@ -2,23 +2,25 @@ var express = require("express");
 var router = express.Router();
 var User = require('../../../models').User;
 var request = require('request');
+var response = null
 
 var api_call = request('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY', { json: true }, (err, res, body) => {
     if (err) {
       return err;
+    } else {
+      response = [res.statusCode,body]
     }
-    res = [res.statusCode,body]
-    return res
-    })
+  })
 
 
 router.get("/", function(req, res, next){
-  if(api_call["responseContent"]["statusCode"] == 200){
+  if(response[0] == 200){
     res.setHeader("Content-Type", "application/json");
-    res.status(200).send(JSON.stringify(api_call["responseContent"]["body"], null, ' '));
+    res.status(200).send(JSON.stringify(response[1], null, ' '));
+  } else {
+    res.setHeader("Content-Type", "application/json");
+    res.status(404).send(JSON.stringify({"Error": "No response from API"}, null, ' '))
   }
-  res.setHeader("Content-Type", "application/json");
-  res.status(404).send(JSON.stringify({"Error": "No response from API"}, null, ' '))
 });
 
 module.exports = router;
