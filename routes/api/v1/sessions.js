@@ -4,12 +4,6 @@ var User = require('../../../models').User;
 
 const bcrypt = require('bcrypt');
 
-var checkPassword = function(password, hash){
-  return bcrypt.compare(password, hash).then(function(res) {
-    return res
-  });
-}
-
 var verifyLogin = function(email, password){
   return User.findOne({where: {email: email} })
   .then(user => {
