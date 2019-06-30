@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     api_key: DataTypes.STRING
   }, {});
   User.associate = function(models) {
-    User.belongToMany(models.Favorite, {
+    User.belongsToMany(models.Favorite, {
       through: 'UserFavorites',
       as: 'favorites',
       foreignKey: 'user_id'
