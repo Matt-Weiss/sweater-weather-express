@@ -145,20 +145,44 @@ var parseWeather = function(location,forecast){
 return parsed_current_forecast;
 }
 
-router.get("/", function(req, res, next){
-  get_location(req.query.location)
-  .then(location => {
-    var parsed_location = `${location["lat"]},${location["lng"]}`
-    return get_weather(parsed_location)
-    .then(weather => {
-      final_forecast = parseWeather(req.query.location, weather)
-      res.setHeader("Content-Type", "application/json");
-      res.status(200).send(JSON.stringify(final_forecast));
-    })
-    .catch(error => {
-      return error;
-    });
+var verifyApiKey = function(api_key){
+  return User.findOne({where: {api_key: api_key}})
+  .then(user => {
+    if(user != null){
+      return true;
+    }
+    return false;
   })
+};
+
+
+router.get("/", function(req, res, next){
+  if (req.body.api_key){
+    verifyApiKey(req.body.api_key)
+    .then((validity) => {
+      if (validity == false) {
+        res.setHeader("Content-Type", "application/json");
+        res.status(401).send("No user with that key!")
+      } else {
+        get_location(req.query.location)
+        .then(location => {
+          var parsed_location = `${location["lat"]},${location["lng"]}`
+          return get_weather(parsed_location)
+          .then(weather => {
+            final_forecast = parseWeather(req.query.location, weather)
+            res.setHeader("Content-Type", "application/json");
+            res.status(200).send(JSON.stringify(final_forecast));
+          })
+          .catch(error => {
+            return error;
+          });
+        })
+      }
+    })
+  } else {
+    res.setHeader("Content-Type", "application/json");
+    res.status(401).send(JSON.stringify("No API key sent"));
+  }
 })
 
 
