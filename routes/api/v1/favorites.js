@@ -40,6 +40,22 @@ var findUserFavorites = function(user_id){
   })
 }
 
+var deleteUserFavorite = function(user_id, location_name){
+  return User.findOne({where: {id: user_id}})
+  .then(user => {
+    return user.getFavorites({where: {location: location_name}})
+    .then(favorite => {
+      if(favorite[0]){
+        return UserFavorites.destroy({where: {user_id: user_id,
+                                   favorite_id: favorite[0].id}
+                             })
+      } else {
+        return "failed"
+      }
+    })
+  })
+}
+
 var parseWeather = function(location,forecast){
   var current_forecast = forecast["currently"]
   var hourly_header = forecast["hourly"]
@@ -134,6 +150,29 @@ router.get("/", function(req, res, next){
           .catch(error => {
             return error;
           });
+        })
+      }
+    })
+  }
+})
+
+router.delete("/", function(req,res,next){
+  if (req.body.api_key){
+    verifyApiKey(req.body.api_key)
+    .then((validity) => {
+      if (validity[0] == false) {
+        res.setHeader("Content-Type", "application/json");
+        res.status(401).send("No user with that key!")
+      } else {
+        deleteUserFavorite(validity[1].id, req.body.location)
+        .then(status =>{
+          if (status == "failed"){
+            res.setHeader("Content-Type", "application/json");
+            res.status(401).send("You haven't favorited that location!")
+          } else {
+            res.setHeader("Content-Type", "application/json");
+            res.status(204).send()
+          }
         })
       }
     })
